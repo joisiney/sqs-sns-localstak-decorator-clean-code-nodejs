@@ -4,6 +4,7 @@ const sns = new SNS(credentials);
 async function publish(msg) {
   let topicRes;
   try {
+    
     topicRes = await sns.publish({
       TopicArn,
       Message: msg

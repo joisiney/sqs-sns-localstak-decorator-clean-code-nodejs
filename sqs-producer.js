@@ -24,6 +24,7 @@ const sendMessageToQueue = async (MessageBody) => {
                 },
             },
         });
+        
         const response = await sqsClient.send(command);
         console.log('sendMessageToQueue/success', response);
     }catch (error) {

@@ -45,6 +45,9 @@ O resultado será um bucket criado e depois a listagem de buckets.
 - [AWS GIT](https://github.com/awsdocs/aws-doc-sdk-examples/tree/main/javascriptv3/example_code)
 - [danieldcs](https://danieldcs.com/simulando-aws-local-com-localstack-e-node-js)
 - [pulse](https://www.linkedin.com/pulse/desenvolvimento-de-aplica%C3%A7%C3%B5es-serverless-locais-uma-vis%C3%A3o-tiago-silva/?originalSubdomain=pt)
+- (Vídeo aula SQS)[https://www.youtube.com/watch?v=b0_NFzdPkDo]
+(Secret Manager)[https://www.google.com/search?sca_esv=600777061&sxsrf=ACQVn08PIjRyOUeTzGZsmjMp2uyBrDsZKA:1706028741285&q=localstack+secretsmanager+Nodejs&tbm=vid&source=lnms&prmd=svinbmtz&sa=X&ved=2ahUKEwiTgOeo_PODAxW8ppUCHeADBWcQ0pQJegQIDxAB&biw=1512&bih=823&dpr=2#fpstate=ive&vld=cid:3191bdd3,vid:NiKSdX_eitU,st:0]
+
 
 - Criando tópico SNS
 ```bash
@@ -148,3 +151,25 @@ aws sqs get-queue-attributes \
 --queue-url http://localhost:4566/000000000000/local-queue \
 --attribute-names QueueArn
 ``````
+
+
+# Setup express
+```bash
+yarn add express
+yarn add typescript @types/express tsx -D
+npx tsc --init
+```
+
+# Salvando credenciais do localstack
+```bash
+aws configure --profile localstack
+```
+
+# Local onde as credenciais são salvas
+```bash
+ls ~/.aws
+```
+
+
+
+https://www.npmjs.com/package/sqs-consumer
