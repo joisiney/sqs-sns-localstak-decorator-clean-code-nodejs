@@ -1,3 +1,6 @@
+import { IAWSCredentials } from '@/application/config/aws.config';
+import { HttpException } from '@/application/exceptions';
+import { ISQSService } from '@/application/service/sqs.service';
 import {
   CreateQueueCommand,
   DeleteMessageBatchCommand,
@@ -9,10 +12,6 @@ import {
   SQSClient,
   SendMessageCommand,
 } from '@aws-sdk/client-sqs';
-
-import { IAWSCredentials } from '@/application/config/aws.config';
-import { HttpException } from '@/application/exceptions/http';
-import { ISQSService } from '@/application/service/sqs.service';
 
 export class SQSProducerService implements ISQSService.Implements {
   private readonly sqsClient: SQSClient;
@@ -98,8 +97,8 @@ export class SQSProducerService implements ISQSService.Implements {
     const receiveMessageCommand = new ReceiveMessageCommand({
       QueueUrl,
       MaxNumberOfMessages: 10,
-      WaitTimeSeconds: 5,
-      VisibilityTimeout: 1000 * 60 * 2,
+      WaitTimeSeconds: 2,
+      VisibilityTimeout: 1000 * 2, // 2s
       AttributeNames: ['All'],
       MessageAttributeNames: props.messageAttributesNames ?? [],
     });
@@ -154,18 +153,23 @@ export class SQSProducerService implements ISQSService.Implements {
   }
 
   async listQueue(props: ISQSService.Queue): Promise<string[]> {
-    const QueueUrl = await this.getQueue(props);
+    try {
+      const QueueUrl = await this.getQueue(props);
 
-    if (!QueueUrl) throw new HttpException('Queue not found', 404);
+      if (!QueueUrl) throw new HttpException('Queue not found', 404);
 
-    const response = await this.sqsClient.send(
-      new ListQueuesCommand({ QueueNamePrefix: props.QueueName }),
-    );
+      const response = await this.sqsClient.send(
+        new ListQueuesCommand({ QueueNamePrefix: props.QueueName }),
+      );
 
-    if (!response.QueueUrls) {
-      throw new HttpException('There is no registered queue', 404);
+      if (!response.QueueUrls) {
+        throw new HttpException('There is no registered queue', 404);
+      }
+      return response.QueueUrls;
+    } catch (error) {
+      console.log(error);
+      return [];
     }
-    return response.QueueUrls;
   }
 
   async deleteQueue(props: ISQSService.Queue): Promise<boolean> {
@@ -182,18 +186,22 @@ export class SQSProducerService implements ISQSService.Implements {
     return true;
   }
 
-  async getQueue(props: ISQSService.Queue): Promise<string> {
-    if (this.memoryQueueUrl[props.QueueName]) {
-      return this.memoryQueueUrl[props.QueueName];
-    }
-    const response = await this.sqsClient.send(new GetQueueUrlCommand(props));
+  async getQueue(props: ISQSService.Queue): Promise<string | undefined> {
+    try {
+      if (this.memoryQueueUrl && this.memoryQueueUrl[props.QueueName]) {
+        return this.memoryQueueUrl[props.QueueName];
+      }
+      const response = await this.sqsClient.send(new GetQueueUrlCommand(props));
 
-    if (!response.QueueUrl) {
-      throw new HttpException('Queue not found', 404);
-    }
+      if (!response.QueueUrl) {
+        return undefined;
+      }
 
-    this.memoryQueueUrl[props.QueueName] = response.QueueUrl;
-    return response.QueueUrl;
+      this.memoryQueueUrl[props.QueueName] = response.QueueUrl;
+      return response.QueueUrl;
+    } catch (error) {
+      return undefined;
+    }
   }
 
   async hasQueue(props: ISQSService.Queue): Promise<boolean> {
