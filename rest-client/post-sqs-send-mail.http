@@ -1,7 +1,27 @@
-POST http://localhost:3001/sqs-send-mail HTTP/1.1
+### 1. Add queue
+POST http://localhost:3001/queue HTTP/1.1
 content-type: application/json
 
-{
-    "name": "sample",
-    "time": "Wed, 21 Oct 2015 18:27:50 GMT"
-}
+### 2. List queue
+GET http://localhost:3001/queues HTTP/1.1
+content-type: application/json
+
+### 3. Get queue by QueueName
+GET http://localhost:3001/queue HTTP/1.1
+content-type: application/json
+
+### 4. Remove queue by url
+DELETE http://localhost:3001/queue HTTP/1.1
+content-type: application/json
+
+### 5. Disparar mensagem para uma fila
+POST http://localhost:3001/dispatch-message HTTP/1.1
+content-type: application/json
+
+### 6. Recebe uma ou mais mensagens da fila
+GET http://localhost:3001/receive-messages HTTP/1.1
+content-type: application/json
+
+### 7. Recebe e apaga uma ou mais mensagens da fila
+GET http://localhost:3001/receive-messages-and-delete HTTP/1.1
+content-type: application/json
