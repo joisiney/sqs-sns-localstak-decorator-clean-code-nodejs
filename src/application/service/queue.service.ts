@@ -1,4 +1,4 @@
-export namespace ISQSService {
+export namespace IQueueService {
   export interface Message {
     message: string;
     receipId: string;
@@ -6,7 +6,7 @@ export namespace ISQSService {
     messageAttributes: object;
   }
   export interface Queue {
-    QueueName: string;
+    queue: string;
   }
   export interface DispatchMessageProps extends Queue {
     message: string;

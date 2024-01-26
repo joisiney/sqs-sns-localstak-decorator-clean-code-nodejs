@@ -1,13 +1,13 @@
-import { SQSProducerService } from '@/infra/service/sqs-producer.service';
+import { SQSService } from '@/infra/service/sqs.service';
 import { Request, Response } from 'express';
 
-export class SQSMailController {
-  private queueName = 'local-queue-send-mail';
-  constructor(private readonly sqsSendMailService: SQSProducerService) {}
+export class SQSController {
+  private queue = 'local-queue';
+  constructor(private readonly sqsService: SQSService) {}
 
   async dispatchMessage(request: Request, response: Response) {
-    const output = await this.sqsSendMailService.dispatchMessage({
-      QueueName: this.queueName,
+    const output = await this.sqsService.dispatchMessage({
+      queue: this.queue,
       message: 'Welcome to the system',
       messageAttributes: {
         name: 'John Doe',
@@ -25,8 +25,8 @@ export class SQSMailController {
   }
 
   async receiveMessages(request: Request, response: Response) {
-    const output = await this.sqsSendMailService.receiveMessages({
-      QueueName: this.queueName,
+    const output = await this.sqsService.receiveMessages({
+      queue: this.queue,
       messageAttributesNames: ['name', 'age', 'isActived'],
     });
     return response.status(200).json({
@@ -39,13 +39,13 @@ export class SQSMailController {
   }
 
   async receiveMessagesAndDelete(request: Request, response: Response) {
-    const messages = await this.sqsSendMailService.receiveMessages({
-      QueueName: this.queueName,
+    const messages = await this.sqsService.receiveMessages({
+      queue: this.queue,
       messageAttributesNames: ['name', 'age', 'isActived'],
     });
 
-    await this.sqsSendMailService.deleteMessages({
-      QueueName: this.queueName,
+    await this.sqsService.deleteMessages({
+      queue: this.queue,
       messages,
     });
     return response.status(200).json({
@@ -58,8 +58,8 @@ export class SQSMailController {
   }
 
   async createQueue(request: Request, response: Response) {
-    const output = await this.sqsSendMailService.createQueue({
-      QueueName: this.queueName,
+    const output = await this.sqsService.createQueue({
+      queue: this.queue,
     });
     return response.status(output ? 201 : 400).json({
       status: true,
@@ -71,8 +71,8 @@ export class SQSMailController {
   }
 
   async listQueue(request: Request, response: Response) {
-    const output = await this.sqsSendMailService.listQueue({
-      QueueName: this.queueName,
+    const output = await this.sqsService.listQueue({
+      queue: this.queue,
     });
     return response.status(200).json({
       status: true,
@@ -84,8 +84,8 @@ export class SQSMailController {
   }
 
   async deleteQueue(request: Request, response: Response) {
-    const output = await this.sqsSendMailService.deleteQueue({
-      QueueName: this.queueName,
+    const output = await this.sqsService.deleteQueue({
+      queue: this.queue,
     });
     return response.status(200).json({
       status: true,
@@ -97,8 +97,8 @@ export class SQSMailController {
   }
 
   async getQueue(request: Request, response: Response) {
-    const output = await this.sqsSendMailService.getQueue({
-      QueueName: this.queueName,
+    const output = await this.sqsService.getQueue({
+      queue: this.queue,
     });
     return response.status(200).json({
       status: true,

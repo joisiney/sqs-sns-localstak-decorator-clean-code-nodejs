@@ -1,32 +1,32 @@
 import { awsCredentials } from '@/application/config/aws.config';
-import { SQSMailController } from '@/infra/controller/sqs-mail.controller';
-import { SQSProducerService } from '@/infra/service/sqs-producer.service';
+import { SQSController } from '@/infra/controller/sqs.controller';
+import { SQSService } from '@/infra/service/sqs.service';
 import { Router } from 'express';
 
 const sqsRouter = Router();
 
 // GLOBAL SERVICES
-const sqsSendMailService = new SQSProducerService(awsCredentials);
+const service = new SQSService(awsCredentials);
 
 // SQS CONTROLLER
-const sqsController = new SQSMailController(sqsSendMailService);
+const controller = new SQSController(service);
 
 // SQS ROUTES
-sqsRouter.post('/queue', sqsController.createQueue.bind(sqsController));
-sqsRouter.get('/queues', sqsController.listQueue.bind(sqsController));
-sqsRouter.get('/queue', sqsController.getQueue.bind(sqsController));
-sqsRouter.delete('/queue', sqsController.deleteQueue.bind(sqsController));
+sqsRouter.post('/sqs/queue', controller.createQueue.bind(controller));
+sqsRouter.get('/sqs/queues', controller.listQueue.bind(controller));
+sqsRouter.get('/sqs/queue', controller.getQueue.bind(controller));
+sqsRouter.delete('/sqs/queue', controller.deleteQueue.bind(controller));
 sqsRouter.post(
-  '/dispatch-message',
-  sqsController.dispatchMessage.bind(sqsController),
+  '/sqs/dispatch-message',
+  controller.dispatchMessage.bind(controller),
 );
 sqsRouter.get(
-  '/receive-messages',
-  sqsController.receiveMessages.bind(sqsController),
+  '/sqs/receive-messages',
+  controller.receiveMessages.bind(controller),
 );
 sqsRouter.get(
-  '/receive-messages-and-delete',
-  sqsController.receiveMessagesAndDelete.bind(sqsController),
+  '/sqs/receive-messages-and-delete',
+  controller.receiveMessagesAndDelete.bind(controller),
 );
 // EXPORTS
 export { sqsRouter };

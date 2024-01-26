@@ -1,16 +1,16 @@
 version: '3.9'
 services:
   localstack:
-    container_name: "localstack_main"
+    container_name: 'localstack_main'
     image: localstack/localstack
     network_mode: bridge
     ports:
-      - "4566:4566"
+      - '4566:4566'
     environment:
-      - SERVICES=s3,lambda,sqs,apigateway,dynamodb
+      - SERVICES=s3,lambda,sqs,sns,apigateway,dynamodb
       - AWS_DEFAULT_REGION=us-east-1
       - EDGE_PORT=4566
       - DEBUG=1
     volumes:
-      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
-      - "/var/run/docker.sock:/var/run/docker.sock"
+      - '${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack'
+      - '/var/run/docker.sock:/var/run/docker.sock'

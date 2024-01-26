@@ -1,6 +1,6 @@
 import { IAWSCredentials } from '@/application/config/aws.config';
 import { HttpException } from '@/application/exceptions';
-import { ISQSService } from '@/application/service/sqs.service';
+import { IQueueService } from '@/application/service/queue.service';
 import {
   CreateQueueCommand,
   DeleteMessageBatchCommand,
@@ -13,7 +13,7 @@ import {
   SendMessageCommand,
 } from '@aws-sdk/client-sqs';
 
-export class SQSProducerService implements ISQSService.Implements {
+export class SQSService implements IQueueService.Implements {
   private readonly sqsClient: SQSClient;
   private memoryQueueUrl: { [key: string]: string } = {};
   constructor(credentials: IAWSCredentials) {
@@ -21,7 +21,7 @@ export class SQSProducerService implements ISQSService.Implements {
   }
 
   private transformObjectToMessageAttributes(
-    object: ISQSService.MessageAttributes,
+    object: IQueueService.MessageAttributes,
   ) {
     return Object.entries(object).reduce((acc, [key, StringValue]) => {
       let DataType = 'String';
@@ -72,7 +72,7 @@ export class SQSProducerService implements ISQSService.Implements {
   }
 
   async dispatchMessage(
-    props: ISQSService.DispatchMessageProps,
+    props: IQueueService.DispatchMessageProps,
   ): Promise<boolean> {
     const QueueUrl = await this.getQueue(props);
     const MessageAttributes = this.transformObjectToMessageAttributes(
@@ -90,8 +90,8 @@ export class SQSProducerService implements ISQSService.Implements {
   }
 
   async receiveMessages(
-    props: ISQSService.ReceiveMessagesProps,
-  ): Promise<ISQSService.Message[]> {
+    props: IQueueService.ReceiveMessagesProps,
+  ): Promise<IQueueService.Message[]> {
     const QueueUrl = await this.getQueue(props);
 
     const receiveMessageCommand = new ReceiveMessageCommand({
@@ -118,12 +118,12 @@ export class SQSProducerService implements ISQSService.Implements {
           messageAttributes: message.MessageAttributes
             ? this.transformMessageAttributesToObject(message.MessageAttributes)
             : {},
-        } as ISQSService.Message),
+        } as IQueueService.Message),
     );
   }
 
   async deleteMessages(
-    props: ISQSService.DeleteMessagesProps,
+    props: IQueueService.DeleteMessagesProps,
   ): Promise<boolean> {
     if (props.messages.length === 0) return true;
 
@@ -141,25 +141,29 @@ export class SQSProducerService implements ISQSService.Implements {
     return true;
   }
 
-  async createQueue(props: ISQSService.Queue): Promise<boolean> {
+  async createQueue(props: IQueueService.Queue): Promise<boolean> {
     try {
       const QueueUrl = await this.getQueue(props);
       if (QueueUrl) return false;
-      await this.sqsClient.send(new CreateQueueCommand(props));
+      await this.sqsClient.send(
+        new CreateQueueCommand({
+          QueueName: props.queue,
+        }),
+      );
       return true;
     } catch {
       return false;
     }
   }
 
-  async listQueue(props: ISQSService.Queue): Promise<string[]> {
+  async listQueue(props: IQueueService.Queue): Promise<string[]> {
     try {
       const QueueUrl = await this.getQueue(props);
 
       if (!QueueUrl) throw new HttpException('Queue not found', 404);
 
       const response = await this.sqsClient.send(
-        new ListQueuesCommand({ QueueNamePrefix: props.QueueName }),
+        new ListQueuesCommand({ QueueNamePrefix: props.queue }),
       );
 
       if (!response.QueueUrls) {
@@ -167,44 +171,47 @@ export class SQSProducerService implements ISQSService.Implements {
       }
       return response.QueueUrls;
     } catch (error) {
-      console.log(error);
       return [];
     }
   }
 
-  async deleteQueue(props: ISQSService.Queue): Promise<boolean> {
+  async deleteQueue(props: IQueueService.Queue): Promise<boolean> {
     const QueueUrl = await this.getQueue(props);
 
     if (!QueueUrl) throw new HttpException('Queue not found', 404);
 
     await this.sqsClient.send(new DeleteQueueCommand({ QueueUrl }));
 
-    if (this.memoryQueueUrl[props.QueueName]) {
-      delete this.memoryQueueUrl[props.QueueName];
+    if (this.memoryQueueUrl[props.queue]) {
+      delete this.memoryQueueUrl[props.queue];
     }
 
     return true;
   }
 
-  async getQueue(props: ISQSService.Queue): Promise<string | undefined> {
+  async getQueue(props: IQueueService.Queue): Promise<string | undefined> {
     try {
-      if (this.memoryQueueUrl && this.memoryQueueUrl[props.QueueName]) {
-        return this.memoryQueueUrl[props.QueueName];
+      if (this.memoryQueueUrl && this.memoryQueueUrl[props.queue]) {
+        return this.memoryQueueUrl[props.queue];
       }
-      const response = await this.sqsClient.send(new GetQueueUrlCommand(props));
+      const response = await this.sqsClient.send(
+        new GetQueueUrlCommand({
+          QueueName: props.queue,
+        }),
+      );
 
       if (!response.QueueUrl) {
         return undefined;
       }
 
-      this.memoryQueueUrl[props.QueueName] = response.QueueUrl;
+      this.memoryQueueUrl[props.queue] = response.QueueUrl;
       return response.QueueUrl;
     } catch (error) {
       return undefined;
     }
   }
 
-  async hasQueue(props: ISQSService.Queue): Promise<boolean> {
+  async hasQueue(props: IQueueService.Queue): Promise<boolean> {
     const response = await this.getQueue(props);
     return !!response;
   }
