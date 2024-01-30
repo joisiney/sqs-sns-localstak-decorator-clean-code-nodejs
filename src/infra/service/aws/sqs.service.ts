@@ -1,5 +1,5 @@
 import { IAWSCredentials } from '@/application/config/aws.config';
-import { HttpException } from '@/application/exceptions';
+import { BadRequestException } from '@/application/exceptions';
 import { IQueueService } from '@/application/service/queue.service';
 import {
   CreateQueueCommand,
@@ -125,60 +125,55 @@ export class SQSService implements IQueueService.Implements {
   async deleteMessages(
     props: IQueueService.DeleteMessagesProps,
   ): Promise<boolean> {
-    if (props.messages.length === 0) return true;
+    try {
+      if (props.messages.length === 0) return true;
 
-    const QueueUrl = await this.getQueue(props);
+      const QueueUrl = await this.getQueue(props);
 
+      await this.sqsClient.send(
+        new DeleteMessageBatchCommand({
+          QueueUrl,
+          Entries: props.messages.map(({ receipId, messageId }) => ({
+            Id: messageId,
+            ReceiptHandle: receipId,
+          })),
+        }),
+      );
+      return true;
+    } catch (err) {
+      if (err instanceof BadRequestException) {
+        throw err;
+      }
+      throw new BadRequestException('Queues not found');
+    }
+  }
+
+  async createQueue(props: IQueueService.Queue): Promise<boolean> {
+    const isExists = await this.hasQueue(props);
+    if (isExists) {
+      throw new BadRequestException('Queue already exists');
+    }
     await this.sqsClient.send(
-      new DeleteMessageBatchCommand({
-        QueueUrl,
-        Entries: props.messages.map(({ receipId, messageId }) => ({
-          Id: messageId,
-          ReceiptHandle: receipId,
-        })),
+      new CreateQueueCommand({
+        QueueName: props.queue,
       }),
     );
     return true;
   }
 
-  async createQueue(props: IQueueService.Queue): Promise<boolean> {
-    try {
-      const QueueUrl = await this.getQueue(props);
-      if (QueueUrl) return false;
-      await this.sqsClient.send(
-        new CreateQueueCommand({
-          QueueName: props.queue,
-        }),
-      );
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
   async listQueue(props: IQueueService.Queue): Promise<string[]> {
-    try {
-      const QueueUrl = await this.getQueue(props);
+    const response = await this.sqsClient.send(
+      new ListQueuesCommand({ QueueNamePrefix: props.queue }),
+    );
 
-      if (!QueueUrl) throw new HttpException('Queue not found', 404);
-
-      const response = await this.sqsClient.send(
-        new ListQueuesCommand({ QueueNamePrefix: props.queue }),
-      );
-
-      if (!response.QueueUrls) {
-        throw new HttpException('There is no registered queue', 404);
-      }
-      return response.QueueUrls;
-    } catch (error) {
-      return [];
+    if (!response || !response.QueueUrls) {
+      throw new BadRequestException('There is no registered queue');
     }
+    return response.QueueUrls;
   }
 
   async deleteQueue(props: IQueueService.Queue): Promise<boolean> {
     const QueueUrl = await this.getQueue(props);
-
-    if (!QueueUrl) throw new HttpException('Queue not found', 404);
 
     await this.sqsClient.send(new DeleteQueueCommand({ QueueUrl }));
 
@@ -190,29 +185,29 @@ export class SQSService implements IQueueService.Implements {
   }
 
   async getQueue(props: IQueueService.Queue): Promise<string | undefined> {
-    try {
-      if (this.memoryQueueUrl && this.memoryQueueUrl[props.queue]) {
-        return this.memoryQueueUrl[props.queue];
-      }
-      const response = await this.sqsClient.send(
-        new GetQueueUrlCommand({
-          QueueName: props.queue,
-        }),
-      );
-
-      if (!response.QueueUrl) {
-        return undefined;
-      }
-
-      this.memoryQueueUrl[props.queue] = response.QueueUrl;
-      return response.QueueUrl;
-    } catch (error) {
-      return undefined;
+    if (this.memoryQueueUrl && this.memoryQueueUrl[props.queue]) {
+      return this.memoryQueueUrl[props.queue];
     }
+    const response = await this.sqsClient.send(
+      new GetQueueUrlCommand({
+        QueueName: props.queue,
+      }),
+    );
+
+    if (!response || !response.QueueUrl) {
+      throw new BadRequestException('Queue not found');
+    }
+
+    this.memoryQueueUrl[props.queue] = response.QueueUrl;
+    return response.QueueUrl;
   }
 
   async hasQueue(props: IQueueService.Queue): Promise<boolean> {
-    const response = await this.getQueue(props);
-    return !!response;
+    try {
+      const response = await this.getQueue(props);
+      return !!response;
+    } catch {
+      return false;
+    }
   }
 }

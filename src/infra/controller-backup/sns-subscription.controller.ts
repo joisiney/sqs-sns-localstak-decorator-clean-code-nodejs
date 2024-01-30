@@ -1,5 +1,4 @@
-import { SNSSubscriptionService } from '@/infra/service/sns-subscription.service';
-import { Request, Response } from 'express';
+import { SNSSubscriptionService } from '@/infra/service/aws/sns-subscription.service';
 
 export class SNSSubscriptionController {
   private topic = 'local-topic';
@@ -8,12 +7,12 @@ export class SNSSubscriptionController {
     private readonly snsSubscriptionService: SNSSubscriptionService,
   ) {}
 
-  async subscription(request: Request, response: Response) {
+  async subscription(_: IFastifyRequest, reply: IFastifyReply): IFastifyReturn {
     const output = await this.snsSubscriptionService.subscription({
       topic: this.topic,
       queue: this.queue,
     });
-    return response.status(output ? 201 : 400).json({
+    return reply.send({
       status: true,
       method: 'subscription',
       message: 'ok',

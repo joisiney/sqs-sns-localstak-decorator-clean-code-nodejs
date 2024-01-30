@@ -1,15 +1,14 @@
-import { SNSService } from '@/infra/service/sns.service';
-import { Request, Response } from 'express';
+import { SNSService } from '@/infra/service/aws/sns.service';
 
 export class SNSController {
   private topic = 'local-topic';
   constructor(private readonly snsService: SNSService) {}
 
-  async createTopic(request: Request, response: Response) {
+  async createTopic(_: IFastifyRequest, reply: IFastifyReply): IFastifyReturn {
     const output = await this.snsService.createTopic({
       topic: this.topic,
     });
-    return response.status(output ? 201 : 400).json({
+    return reply.send({
       status: true,
       method: 'createTopic',
       message: 'ok',
@@ -18,9 +17,9 @@ export class SNSController {
     });
   }
 
-  async listTopics(request: Request, response: Response) {
+  async listTopics(_: IFastifyRequest, reply: IFastifyReply): IFastifyReturn {
     const output = await this.snsService.listTopics();
-    return response.status(output ? 201 : 400).json({
+    return reply.send({
       status: true,
       method: 'listTopics',
       message: 'ok',
@@ -29,12 +28,12 @@ export class SNSController {
     });
   }
 
-  async deleteTopic(request: Request, response: Response) {
+  async deleteTopic(_: IFastifyRequest, reply: IFastifyReply): IFastifyReturn {
     const output = await this.snsService.deleteTopic({
       topic: this.topic,
     });
 
-    return response.status(output ? 201 : 400).json({
+    return reply.send({
       status: true,
       method: 'listTopics',
       message: 'ok',
@@ -43,12 +42,12 @@ export class SNSController {
     });
   }
 
-  async getTopic(request: Request, response: Response) {
+  async getTopic(_: IFastifyRequest, reply: IFastifyReply): IFastifyReturn {
     const output = await this.snsService.getTopic({
       topic: this.topic,
     });
 
-    return response.status(output ? 201 : 400).json({
+    return reply.send({
       status: true,
       method: 'getTopic',
       message: 'ok',

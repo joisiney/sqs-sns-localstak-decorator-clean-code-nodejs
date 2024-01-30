@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../../exchange-api-master"
+		}
+	],
+	"settings": {}
+}

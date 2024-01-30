@@ -1,16 +1,16 @@
 ### 1. Add topic
-POST http://localhost:3001/sns/topic HTTP/1.1
+POST {{host}}/sns/topic HTTP/1.1
 content-type: application/json
 
 
 ### 1. List topics
-GET http://localhost:3001/sns/topics HTTP/1.1
+GET {{host}}/sns/topics HTTP/1.1
 content-type: application/json
 
 ### 1. Get topic by name
-GET http://localhost:3001/sns/topic HTTP/1.1
+GET {{host}}/sns/topic HTTP/1.1
 content-type: application/json
 
 ### 1. Delete topic by name
-DELETE http://localhost:3001/sns/topic HTTP/1.1
+DELETE {{host}}/sns/topic HTTP/1.1
 content-type: application/json
