@@ -10,7 +10,8 @@
     "test": "jest --passWithNoTests",
     "test:watch": "yarn test --watch",
     "test:staged": "yarn test --findRelatedTests",
-    "test:push": "yarn test --coverage"
+    "test:push": "yarn test --coverage",
+    "lint": "eslint --fix"
   },
   "author": "Joisiney Leandro",
   "license": "ISC",
