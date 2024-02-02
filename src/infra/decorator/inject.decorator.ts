@@ -38,7 +38,7 @@ export function Inject(key: string) {
     if (!dependencies[key]) {
       setTimeout(() => {
         target[propertyKey] = dependencies[key]();
-      });
+      }, 100);
       return;
     }
     target[propertyKey] = dependencies[key]();

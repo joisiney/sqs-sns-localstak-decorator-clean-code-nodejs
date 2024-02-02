@@ -1,16 +1,12 @@
 export namespace IQueueTopic {
-  export interface TopicInput {
+  export interface Topic {
     topic: string;
   }
-  export interface SubscriptionInput {
-    topicArn: string;
-    queueUrl: string;
-  }
+
   export interface Implements {
-    createTopic(props: TopicInput): Promise<string | boolean>;
+    createTopic(props: Topic): Promise<string>;
     listTopics(): Promise<string[]>;
-    getTopic(props: TopicInput): Promise<string | undefined>;
-    deleteTopic(props: TopicInput): Promise<boolean>;
-    subscription(props: SubscriptionInput): Promise<boolean>;
+    getTopic(props: Topic): Promise<string>;
+    deleteTopic(props: Topic): Promise<boolean>;
   }
 }

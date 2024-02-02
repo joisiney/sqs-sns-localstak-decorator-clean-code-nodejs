@@ -5,6 +5,7 @@ import {
   CreateQueueCommand,
   DeleteMessageBatchCommand,
   DeleteQueueCommand,
+  GetQueueAttributesCommand,
   GetQueueUrlCommand,
   ListQueuesCommand,
   MessageAttributeValue,
@@ -74,7 +75,7 @@ export class SQSService implements IQueueService.Implements {
   async dispatchMessage(
     props: IQueueService.DispatchMessageProps,
   ): Promise<boolean> {
-    const QueueUrl = await this.getQueue(props);
+    const QueueUrl = await this.getQueueUrl(props);
     const MessageAttributes = this.transformObjectToMessageAttributes(
       props.messageAttributes || {},
     );
@@ -92,7 +93,7 @@ export class SQSService implements IQueueService.Implements {
   async receiveMessages(
     props: IQueueService.ReceiveMessagesProps,
   ): Promise<IQueueService.Message[]> {
-    const QueueUrl = await this.getQueue(props);
+    const QueueUrl = await this.getQueueUrl(props);
 
     const receiveMessageCommand = new ReceiveMessageCommand({
       QueueUrl,
@@ -128,7 +129,7 @@ export class SQSService implements IQueueService.Implements {
     try {
       if (props.messages.length === 0) return true;
 
-      const QueueUrl = await this.getQueue(props);
+      const QueueUrl = await this.getQueueUrl(props);
 
       await this.sqsClient.send(
         new DeleteMessageBatchCommand({
@@ -173,7 +174,7 @@ export class SQSService implements IQueueService.Implements {
   }
 
   async deleteQueue(props: IQueueService.Queue): Promise<boolean> {
-    const QueueUrl = await this.getQueue(props);
+    const QueueUrl = await this.getQueueUrl(props);
 
     await this.sqsClient.send(new DeleteQueueCommand({ QueueUrl }));
 
@@ -184,7 +185,7 @@ export class SQSService implements IQueueService.Implements {
     return true;
   }
 
-  async getQueue(props: IQueueService.Queue): Promise<string | undefined> {
+  async getQueueUrl(props: IQueueService.Queue): Promise<string> {
     if (this.memoryQueueUrl && this.memoryQueueUrl[props.queue]) {
       return this.memoryQueueUrl[props.queue];
     }
@@ -193,18 +194,32 @@ export class SQSService implements IQueueService.Implements {
         QueueName: props.queue,
       }),
     );
-
     if (!response || !response.QueueUrl) {
       throw new BadRequestException('Queue not found');
     }
-
     this.memoryQueueUrl[props.queue] = response.QueueUrl;
     return response.QueueUrl;
   }
 
+  async getQueueArn(props: IQueueService.Queue): Promise<string> {
+    const QueueUrl = await this.getQueueUrl(props);
+    const response = await this.sqsClient.send(
+      new GetQueueAttributesCommand({
+        QueueUrl,
+        AttributeNames: ['QueueArn'],
+      }),
+    );
+
+    if (!response || !response.Attributes || !response.Attributes.QueueArn) {
+      throw new BadRequestException('Queue not found');
+    }
+
+    return response.Attributes.QueueArn;
+  }
+
   async hasQueue(props: IQueueService.Queue): Promise<boolean> {
     try {
-      const response = await this.getQueue(props);
+      const response = await this.getQueueUrl(props);
       return !!response;
     } catch {
       return false;

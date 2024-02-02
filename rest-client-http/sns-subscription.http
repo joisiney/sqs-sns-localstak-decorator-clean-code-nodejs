@@ -1,3 +1,16 @@
-### 1. Subscription SNS
-POST {{host}}/sns/subscription/sqs HTTP/1.1
+### 1. Subscription in topic SNS
+POST {{host}}/sns/topic/subscription HTTP/1.1
+content-type: application/json
+
+{
+    "topic":"local-topic",
+    "queue":"local-queue"
+}
+
+### 2. Subscription list in topic SNS
+GET {{host}}/sns/topic/subscriptions HTTP/1.1
+content-type: application/json
+
+### 3. 
+GET {{host}}/sns/topic/subscription?topic=local-topic&queue=local-queue HTTP/1.1
 content-type: application/json

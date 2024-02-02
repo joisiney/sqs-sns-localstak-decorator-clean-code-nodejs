@@ -27,9 +27,9 @@ export function Route({ method, url, dto }: IRouteProps) {
         const userAgent = userAgentParse(request);
 
         const allProps = {
-          params: request.params,
-          query: request.query ?? {},
-          body: request.body ?? {},
+          ...(request.params ?? {}),
+          ...(request.query ?? {}),
+          ...(request.body ?? {}),
           headers: request.headers,
           userAgent,
         };
@@ -38,7 +38,6 @@ export function Route({ method, url, dto }: IRouteProps) {
         return reply.send(response);
       } catch (err) {
         const { is, name, error } = isMyException(err);
-
         const stack: any =
           name === 'ZodException'
             ? {}
@@ -56,7 +55,9 @@ export function Route({ method, url, dto }: IRouteProps) {
             stack,
           });
         }
-        stack.sereverError = error.message;
+        const msg = error.message;
+        stack.sereverError = msg && msg.length > 0 ? msg : error.toString();
+
         return reply.status(500).send({
           code: 500,
           status: 'InternalException',

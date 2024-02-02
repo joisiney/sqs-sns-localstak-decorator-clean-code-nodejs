@@ -24,19 +24,13 @@ export namespace IQueueService {
   }
   export interface Implements {
     dispatchMessage(props: DispatchMessageProps): Promise<boolean>;
-
     receiveMessages(props: ReceiveMessagesProps): Promise<Message[]>;
-
     deleteMessages(props: DeleteMessagesProps): Promise<boolean>;
-
     createQueue(props: Queue): Promise<boolean>;
-
     listQueue(props: Queue): Promise<string[]>;
-
     deleteQueue(props: Queue): Promise<boolean>;
-
-    getQueue(props: Queue): Promise<string | undefined>;
-
+    getQueueUrl(props: Queue): Promise<string>;
+    getQueueArn(props: Queue): Promise<string>;
     hasQueue(props: Queue): Promise<boolean>;
   }
 }
