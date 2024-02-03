@@ -14,6 +14,9 @@ export namespace IQueueService {
   }
   export interface ReceiveMessagesProps extends Queue {
     messageAttributesNames?: string[];
+    take?: number;
+    awaitTimeSeconds?: number;
+    visibilityTimeoutSeconds?: number;
   }
   export interface DeleteMessagesProps extends Queue {
     messages: Message[];

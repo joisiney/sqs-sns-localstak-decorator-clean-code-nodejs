@@ -28,7 +28,7 @@ content-type: application/json
 
 {
     "queue":"local-queue",
-    "message":"Ola mundo",
+    "message":"Ola mundo 2",
     "messageAttributes":{
         "name":"John Doe",
         "age":30,

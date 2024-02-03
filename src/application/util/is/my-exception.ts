@@ -1,5 +1,4 @@
 import * as Exceptions from '@/application/exceptions';
-export const routes: any = {};
 const classesToCheck = Object.values(Exceptions);
 export const isMyException = (error: unknown) => {
   const [treatedError] = classesToCheck

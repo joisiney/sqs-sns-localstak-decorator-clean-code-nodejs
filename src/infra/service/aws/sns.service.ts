@@ -1,4 +1,3 @@
-import { IAWSCredentials } from '@/application/config/aws.config';
 import { BadRequestException } from '@/application/exceptions';
 import { IQueueTopic } from '@/application/service/queue-topic.service';
 import {
@@ -9,12 +8,9 @@ import {
 } from '@aws-sdk/client-sns';
 
 export class SNSService implements IQueueTopic.Implements {
-  private readonly snsClient: SNSClient;
   private memoryTopicUrl: { [key: string]: string } = {};
 
-  constructor(credentials: IAWSCredentials) {
-    this.snsClient = new SNSClient(credentials);
-  }
+  constructor(private readonly snsClient: SNSClient) {}
 
   async createTopic(props: IQueueTopic.Topic): Promise<string> {
     const isExists = await this.hasTopic(props);

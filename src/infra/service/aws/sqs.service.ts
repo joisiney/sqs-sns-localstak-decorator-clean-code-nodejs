@@ -1,4 +1,3 @@
-import { IAWSCredentials } from '@/application/config/aws.config';
 import { BadRequestException } from '@/application/exceptions';
 import { IQueueService } from '@/application/service/queue.service';
 import {
@@ -15,62 +14,8 @@ import {
 } from '@aws-sdk/client-sqs';
 
 export class SQSService implements IQueueService.Implements {
-  private readonly sqsClient: SQSClient;
   private memoryQueueUrl: { [key: string]: string } = {};
-  constructor(credentials: IAWSCredentials) {
-    this.sqsClient = new SQSClient(credentials);
-  }
-
-  private transformObjectToMessageAttributes(
-    object: IQueueService.MessageAttributes,
-  ) {
-    return Object.entries(object).reduce((acc, [key, StringValue]) => {
-      let DataType = 'String';
-      switch (typeof StringValue) {
-        case 'number':
-          StringValue = String(StringValue);
-          DataType = 'Number';
-          break;
-        case 'boolean':
-          StringValue = StringValue ? 'true' : 'false';
-          DataType = 'Binary';
-          break;
-      }
-
-      return {
-        ...acc,
-        [key]: {
-          DataType,
-          StringValue,
-        },
-      };
-    }, {});
-  }
-
-  private transformMessageAttributesToObject(
-    object: Record<string, MessageAttributeValue>,
-  ) {
-    return Object.entries(object).reduce(
-      (acc, [key, { DataType, StringValue }]) => {
-        if (!StringValue) return acc;
-        let value: number | string | boolean = StringValue;
-        switch (DataType) {
-          case 'Number':
-            value = Number(value);
-            break;
-          case 'Binary':
-            value = value === 'true';
-            break;
-        }
-
-        return {
-          ...acc,
-          [key]: value,
-        };
-      },
-      {},
-    );
-  }
+  constructor(private readonly sqsClient: SQSClient) {}
 
   async dispatchMessage(
     props: IQueueService.DispatchMessageProps,
@@ -97,9 +42,9 @@ export class SQSService implements IQueueService.Implements {
 
     const receiveMessageCommand = new ReceiveMessageCommand({
       QueueUrl,
-      MaxNumberOfMessages: 10,
-      WaitTimeSeconds: 2,
-      VisibilityTimeout: 1000 * 2, // 2s
+      MaxNumberOfMessages: props.take ?? 10,
+      WaitTimeSeconds: props.awaitTimeSeconds ?? 2,
+      VisibilityTimeout: props.visibilityTimeoutSeconds ?? 2,
       AttributeNames: ['All'],
       MessageAttributeNames: props.messageAttributesNames ?? [],
     });
@@ -224,5 +169,56 @@ export class SQSService implements IQueueService.Implements {
     } catch {
       return false;
     }
+  }
+
+  private transformObjectToMessageAttributes(
+    object: IQueueService.MessageAttributes,
+  ) {
+    return Object.entries(object).reduce((acc, [key, StringValue]) => {
+      let DataType = 'String';
+      switch (typeof StringValue) {
+        case 'number':
+          StringValue = String(StringValue);
+          DataType = 'Number';
+          break;
+        case 'boolean':
+          StringValue = StringValue ? 'true' : 'false';
+          DataType = 'Binary';
+          break;
+      }
+
+      return {
+        ...acc,
+        [key]: {
+          DataType,
+          StringValue,
+        },
+      };
+    }, {});
+  }
+
+  private transformMessageAttributesToObject(
+    object: Record<string, MessageAttributeValue>,
+  ) {
+    return Object.entries(object).reduce(
+      (acc, [key, { DataType, StringValue }]) => {
+        if (!StringValue) return acc;
+        let value: number | string | boolean = StringValue;
+        switch (DataType) {
+          case 'Number':
+            value = Number(value);
+            break;
+          case 'Binary':
+            value = value === 'true';
+            break;
+        }
+
+        return {
+          ...acc,
+          [key]: value,
+        };
+      },
+      {},
+    );
   }
 }

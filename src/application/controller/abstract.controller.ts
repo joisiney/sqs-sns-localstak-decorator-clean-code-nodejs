@@ -1,17 +1,11 @@
+import { urlFormatParser } from '@/application/util/parse/url-format.parse';
 import { routes } from '@/infra/decorator';
 
 export class AbstractController {
   private path: string;
 
   protected urlFormat(rawUrl: string): string {
-    return (
-      '/' +
-      (this.path ?? '')
-        .split('/')
-        .concat(rawUrl.split('/'))
-        .filter(Boolean)
-        .join('/')
-    );
+    return urlFormatParser(rawUrl, this.path);
   }
   constructor(protected readonly fastify: { route: Function }) {
     const controller = this.constructor.name;
@@ -20,6 +14,7 @@ export class AbstractController {
       const methodRoutes = classRoutes[method];
       Object.keys(methodRoutes).forEach((key) => {
         const { method, handle, url: rawUrl } = methodRoutes[key];
+
         const url = this.urlFormat(rawUrl);
         this.fastify.route({
           method,

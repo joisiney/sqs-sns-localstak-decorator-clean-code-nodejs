@@ -1,3 +1,4 @@
 export * from './controller.decorator';
 export * from './inject.decorator';
-export * from './route.decorator';
+export * from './queue-consumer/index.decorator';
+export * from './route/index.decorator';

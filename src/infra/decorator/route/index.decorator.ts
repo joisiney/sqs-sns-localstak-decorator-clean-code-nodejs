@@ -1,17 +1,12 @@
 import { isMyException } from '@/application/util/is/my-exception';
 import { stackErrorParse } from '@/application/util/parse/stack-error.parse';
+import { routes } from '@/infra/decorator/inject.decorator';
+import { IRoute } from '@/infra/decorator/route/index.dto';
 import { userAgentParse } from '@/infra/util/parse/user-agent.parse';
 import { zodParse } from '@/infra/util/parse/zod.parse';
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { z } from 'zod';
-export const routes: any = {};
 
-type IRouteProps = {
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
-  url: string;
-  dto?: z.ZodObject<any> | z.ZodEffects<any, any>;
-};
-export function Route({ method, url, dto }: IRouteProps) {
+export function Route({ method, url, dto }: IRoute.Props) {
   return function (target: any, propertyKey: string, descriptor: any) {
     const originalMethod = descriptor.value;
 
@@ -26,18 +21,22 @@ export function Route({ method, url, dto }: IRouteProps) {
       try {
         const userAgent = userAgentParse(request);
 
-        const allProps = {
-          ...(request.params ?? {}),
-          ...(request.query ?? {}),
-          ...(request.body ?? {}),
-          headers: request.headers,
-          userAgent,
-        };
-        const props = zodParse(allProps, dto);
+        const props = zodParse(
+          {
+            ...(request.params ?? {}),
+            ...(request.query ?? {}),
+            ...(request.body ?? {}),
+            headers: request.headers,
+            userAgent,
+          },
+          dto,
+        );
+
         const response = await originalMethod.bind(this)(props);
         return reply.send(response);
       } catch (err) {
         const { is, name, error } = isMyException(err);
+
         const stack: any =
           name === 'ZodException'
             ? {}
@@ -73,7 +72,10 @@ export function Route({ method, url, dto }: IRouteProps) {
       handle: descriptor.value,
       method,
       url: url.replace(/^\/|\/$/g, ''),
+      propertyKey,
       className: target.constructor.name,
+      path: target.constructor.prototype.path,
+      path2: target,
     };
 
     return descriptor;

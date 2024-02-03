@@ -1,4 +1,3 @@
-import { IAWSCredentials } from '@/application/config/aws.config';
 import { BadRequestException } from '@/application/exceptions';
 import { IQueueTopicSubscriptionService } from '@/application/service/queue-topic-subscription.service';
 import { IQueueTopic } from '@/application/service/queue-topic.service';
@@ -20,12 +19,9 @@ export class SNSSubscriptionService
   @Inject('SNS_SERVICE')
   private readonly snsService: IQueueTopic.Implements;
 
-  private readonly snsClient: SNSClient;
   private memorySubscription: { [key: string]: string } = {};
 
-  constructor(credentials: IAWSCredentials) {
-    this.snsClient = new SNSClient(credentials);
-  }
+  constructor(private readonly snsClient: SNSClient) {}
 
   private async getTopicAndQueueArn(
     props: IQueueTopicSubscriptionService.QueueTopic,

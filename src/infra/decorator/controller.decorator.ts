@@ -1,5 +1,9 @@
+export const controllerPath: { [key: string]: string } = {};
 export function Controller(path: string) {
-  return function (constructor: Function) {
-    constructor.prototype.path = path.replace(/^\/|\/$/g, '');
+  return function (target: any) {
+    controllerPath[target.name] = target.prototype.path = path.replace(
+      /^\/|\/$/g,
+      '',
+    );
   };
 }
