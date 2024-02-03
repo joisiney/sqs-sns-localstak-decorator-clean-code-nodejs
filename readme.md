@@ -4,97 +4,72 @@
 Docker/LocalStack com Fastify, Clean Code e Injeção de Dependências utilizando
 decorators**
 
-Esta é uma POCK contendo padrões de serviços e decorators para gerenciamento e
-consumo de filas em SQS/SNS. Para rodar o projeto em desenvolvimento utilizei o
-Docker e LocalStack. Para gerenciar rotas utilizei Fastify.js. Adotamos práticas
-de Clean Code, decorators e injeção de dependências para garantir um código
-claro, modular e facilmente mantido.
+# Embarque na Jornada do Decorator Partner
 
-**Principais Características:**
+Este é uma POC me aventurando na terra do Decorator Partner, onde o Clean Code é
+a norma e o gerenciamento de filas com o SQS da Amazon é a prática padrão.
+Complementando a jornada, temos a subscription com SNS e o consumer do SQS,
+implementando o padrão de Decorator Partner pooling para receber as mensagens do
+SQS.
 
-1. **Docker/LocalStack:**
+1. **Tecnologias Utilizadas:**
 
-   - Utilizamos contêineres Docker para facilitar a implantação e garantir a
-     consistência do ambiente de desenvolvimento e produção. O LocalStack é
-     empregado para simular serviços da AWS localmente, permitindo testes e
-     desenvolvimento sem a necessidade de recursos da nuvem.
+   - **LocalStack:** Simula serviços da AWS localmente, permitindo o
+     desenvolvimento e teste sem a necessidade de recursos na nuvem.
+   - **SNS (Simple Notification Service) e SQS (Simple Queue Service):**
+     Serviços da AWS para mensagens e filas, respectivamente.
+   - **Fastify.js:** Um framework web para Node.js conhecido por sua eficiência
+     e desempenho.
+   - **Clean Code:** Práticas de programação que visam criar código legível,
+     modular e fácil de entender.
+   - **Decorator:** Utilizado para injeção de dependências e criação de rotas,
+     tornando o código mais organizado.
+   - **Zod** Utilizado para validação e transformação dos DTOs.
 
-2. **Fastify:**
+2. **Funcionalidades Principais:**
 
-   - O aplicativo é construído sobre o framework Fastify, conhecido por sua
-     eficiência e desempenho em aplicações web e API. A escolha do Fastify
-     contribui para uma execução rápida e eficiente, ideal para serviços de
-     mensageria.
+   - **Docker/LocalStack:** Utiliza contêineres Docker para implantação e
+     LocalStack para simulação de serviços AWS localmente.
+   - **Gerenciamento de Filas e Tópicos SNS:** Permite a criação, configuração e
+     gerenciamento eficiente de filas e tópicos SNS.
+   - **Pooling de Mensagens:** Implementa um mecanismo de pooling de mensagens
+     para envio e recebimento eficiente.
+   - **Visualização de Métodos em Funcionamento:** Utiliza o plugin REST Client
+     para testar os métodos, proporcionando uma maneira fácil de visualizar o
+     funcionamento das rotas.
 
-3. **Clean Code e Injeção de Dependências:**
+3. **Estrutura do Projeto:**
 
-   - Adotamos práticas de Clean Code para garantir uma base de código legível,
-     modular e fácil de entender. A injeção de dependências orquestrar a
-     reutilização dos controlers/services e inicializar as rotas com um padrão
-     mais amigável de rodas.
+   - **Pasta `src/application`:** Contém código específico da aplicação, como
+     controllers, decorators, exceptions, middlewares, services e utilidades que
+     não são contaminados por bibliotecas externas ou pela camada de infra.
+   - **Pasta `src/infra`:** Contém código específico da infraestrutura, como
+     adapters, controllers, decorators, services, etc. Esta camada é responsável
+     por se comunicar com a camada de aplicação e com bibliotecas externas.
 
-4. **Gerenciamento de Filas e Tópicos SNS:**
+4. **Início do Projeto:**
 
-   - Nosso aplicativo permite a criação, configuração e gerenciamento eficiente
-     de filas e tópicos SNS. Os recursos oferecidos pelo SNS, como pub/sub
-     (publicação/assinatura), são plenamente suportados para garantir uma
-     comunicação eficaz entre os diversos componentes do sistema.
+   - Clonagem do projeto e acesso à pasta.
+   - Inicialização do LocalStack com Docker Compose.
+   - Utilização do AWS CLI para criar um bucket no S3 usando o LocalStack.
 
-5. **Pooling de Mensagens:**
+5. **Injeção de Dependências:**
 
-   - Implementamos um mecanismo de pooling de mensagens para enviar e receber
-     mensagens de filas e tópicos de maneira eficiente. Embora o exemplo inicial
-     integre a parte de pooling no mesmo projeto, destacamos que é facilmente
-     escalável e separável em um ambiente distinto, conforme a necessidade do
-     cliente.
+   - Utilização do decorator para injeção de dependências no controller.
+   - Exemplo de injeção de serviço SQS.
 
-6. **Visualizar médotos em funcionamento:**
+6. **Service de Pooling:**
 
-- Utilizamos o plugin REST Client para visualizar os métodos em funcionamento.
-  Para que você possa testar os métodos, basta instalar-lo
-  [através do link](https://open.vscode.dev/Huachao/vscode-restclient) após
-  instalado basta abrir o arquivo da arvore de pastas representadas abaixo e
-  clicar em `Send Request` para testar os métodos.
+   - Injeção do service de pooling no arquivo principal do aplicativo.
+   - Explicação do funcionamento do service de pooling que recebe e exclui
+     mensagens da fila SQS.
 
-```dir
-rest-client-http
- - sns-subscription.http
- - sns-topic.http
- - sqs-queue.http
-```
+7. **Testando as Rotas:**
 
-7. **Pasta src/application:**
-   - Contém todo e qualquer código que seja específico da aplicação, como
-     controllers, decorators, exceptions, middlewares, services ou util.
-     Qualquer serviço contido nesta pasta não deve depender de nenhum serviço de
-     infraestrutura ou de terceiros.
+   - Descrição passo a passo para testar as rotas usando o plugin REST Client.
 
-```dir
-- src
-  - application
-    - controller
-    - decorator
-    - exception
-    - middleware
-    - service
-    - util
-```
-
-7. **Pasta src/infra:**
-
-- Contém todo e qualquer código que seja específico da infraestrutura, como
-  adapter, controller, decorator, service, repository, dto, etc. Todo e qualquer
-  padrão utilizado nesta pasta geralmente é contaminado por serviços de
-  terceiros ou implementa interface da pasta application.
-
-```dir
-- src
-  - infra
-    - controller
-    - decorator
-    - service
-    - util
-```
+8. **Links Utilizados para Estudo:**
+   - Lista de links utilizados para estudar e desenvolver o projeto.
 
 # Iniciando o projeto
 
