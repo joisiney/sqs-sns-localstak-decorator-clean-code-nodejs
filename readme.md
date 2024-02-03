@@ -259,7 +259,7 @@ export type IQueueDto = z.infer<typeof QueueDto>;
   valide e transforme os dados de acordo com as necessidades do `Controller`.
   Veja o exemplo abaixo:
 
-```json
+```
 {
   queue: 'local-queue',
   ...params,
