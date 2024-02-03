@@ -106,7 +106,7 @@ git clone git@github.com:joisiney/sqs-sns-localstak-decorator-clean-code-nodejs.
 
 # Iniciar Localstack com Docker Compose
 
-O arquivo `docker-compose.yml`` contém a configuração necessária para iniciar o
+O arquivo `docker-compose.yml` contém a configuração necessária para iniciar o
 Localstack com os serviços SNS e SQS. Para inicializar o Localstack, execute o
 comando abaixo:
 
@@ -132,7 +132,7 @@ aws --endpoint-url=http://localhost:4566 s3 ls
 
 O resultado será um bucket criado e depois a listagem de buckets.
 
-# FIX/Localstack
+# Erro no Localstack
 
 - No meu caso tive problemas para utiliza-lo em meu MAC M1, dai tive que
   atualizar o localstack para a versão mais recente, a vesão antiga não
@@ -159,6 +159,51 @@ aws configure --profile localstack
 ```bash
 ls ~/.aws
 ```
+
+# Inicializando o projeto
+
+- Chega de enrolação, bora rodar o projeto. Se tudo der certo basta rodar o
+  comando abaixo:
+
+```bash
+docker-compose up -d
+yarn start:dev
+```
+
+que deve aparecer o seguinte log:
+
+```bash
+┌─────────┬──────────────────────────────────────────┬────────────────────────────────────────────────────────────┐
+│ (index) │                   url                    │                          handler                           │
+├─────────┼──────────────────────────────────────────┼────────────────────────────────────────────────────────────┤
+│    0    │           '[POST] /sns/topic'            │               'SNSController::createTopic()'               │
+│    1    │           '[GET] /sns/topics'            │               'SNSController::listTopics()'                │
+│    2    │            '[GET] /sns/topic'            │                'SNSController::getTopics()'                │
+│    3    │          '[DELETE] /sns/topic'           │               'SNSController::deleteTopic()'               │
+│    4    │           '[POST] /sqs/queue'            │               'SQSController::createQueue()'               │
+│    5    │      '[POST] /sqs/dispatch-message'      │             'SQSController::dispatchMessage()'             │
+│    6    │           '[GET] /sqs/queues'            │               'SQSController::listQueues()'                │
+│    7    │            '[GET] /sqs/queue'            │                'SQSController::getQueues()'                │
+│    8    │      '[GET] /sqs/receive-messages'       │             'SQSController::receiveMessages()'             │
+│    9    │ '[GET] /sqs/receive-messages-and-delete' │        'SQSController::receiveAndDeleteMessages()'         │
+│   10    │          '[DELETE] /sqs/queue'           │               'SQSController::deleteQueue()'               │
+│   11    │     '[POST] /sns/topic/subscription'     │     'SubscriptionController::createSubscriptonTopic()'     │
+│   12    │     '[GET] /sns/topic/subscriptions'     │     'SubscriptionController::listSubscriptionTopics()'     │
+│   13    │     '[GET] /sns/topic/subscription'      │ 'SubscriptionController::getSubscriptionByTopicAndQueue()' │
+└─────────┴──────────────────────────────────────────┴────────────────────────────────────────────────────────────┘
+Server listening at http://[::1]:3001 🚀🚀
+```
+
+Perceba que os logs já indicam que o servidor está rodando e as rotas que estão
+disponíveis para teste.
+
+# Testando as rotas
+
+- Execute o método `[POST] /sqs/queue` para criar uma fila SQS.
+- Execute o método `[POST] /sns/topic` para criar um tópico SNS.
+- Execute o método `[POST] /sqs/dispatch-message` para enviar uma mensagem para
+  a fila SQS, neste ponto, a mensagem será enviada para a fila SQS e, em
+  seguida, será recebida pelo service de pooling e excluída da fila.
 
 # Links utilizados para estudo
 
