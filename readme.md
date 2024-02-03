@@ -205,6 +205,152 @@ disponíveis para teste.
   a fila SQS, neste ponto, a mensagem será enviada para a fila SQS e, em
   seguida, será recebida pelo service de pooling e excluída da fila.
 
+# Como que funciona as rotas.
+
+- A aplicação é inicializada através do service `src/application/server.ts`,
+  onde é feita a injeção de dependências e inicialização do servidor Fastify.
+  Perceba que neste arquivo estamos injetando as rotas do SNS e SQS,
+  inicializando o servidor e injetando as rotas. Alem disso, estamos injetando o
+  serviço de pooling para receber as mensagens da fila SQS.
+
+Veja o quando é simples criar um controller, basta criar um arquivo na pasta
+controller e injetar o serviço que deseja utilizar. Veja o exemplo abaixo:
+
+```typescript
+import { AbstractController } from '@/application/controller/abstract.controller';
+import { IQueueService } from '@/application/service/queue.service';
+import { IQueueDto, QueueDto } from '@/infra/controller/sqs/dto/queue-name.dto';
+
+import { Controller, Inject, Route } from '@/infra/decorator';
+
+@Controller('/sqs')
+export class SQSController extends AbstractController {
+  @Inject('SQS_SERVICE')
+  public readonly sqsService: IQueueService.Implements;
+
+  @Route({ method: 'POST', url: '/queue', dto: QueueDto })
+  async createQueue(response: IQueueDto): Promise<{ status: boolean }> {
+    const status = await this.sqsService.createQueue(response);
+    return { status };
+  }
+}
+```
+
+# Como que funciona a injeção de dependências
+
+- A injeção de dependências é feita através do decorator que recebe um serviço e
+  injeta ele no controller e cria sua respectiva rota. Veja o exemplo abaixo:
+
+```typescript
+import { awsCredentials } from '@/application/config/aws.config';
+import { SQSController } from '@/infra/controller/sqs/index.controller';
+
+import { TypeInjection, registerDependency } from '@/infra/decorator';
+import { SQSService } from '@/infra/service/aws/sqs.service';
+import { logsRoutes } from '@/infra/util/logs.routes';
+import { SQSClient } from '@aws-sdk/client-sqs';
+import Fastify, { FastifyInstance } from 'fastify';
+import 'reflect-metadata';
+
+const app: FastifyInstance = Fastify({ logger: false });
+
+app.setErrorHandler(function (error, request, reply) {
+  return reply.send(error);
+});
+
+const sqsClient = new SQSClient(awsCredentials);
+
+registerDependency({
+  services: [
+    {
+      key: 'SQS_SERVICE',
+      type: TypeInjection.SINGLETON,
+      handle: () => new SQSService(sqsClient),
+    },
+  ],
+  controllers: [SQSController],
+  app,
+});
+
+app.listen(
+  {
+    port: 3001,
+  },
+  (err, address) => {
+    if (err) {
+      console.error(err);
+      process.exit(1);
+    }
+    logsRoutes(`Server listening at ${address} 🚀🚀`);
+  },
+);
+```
+
+# Como que funciona o service de pooling
+
+- O service de pooling é injetado no arquivo `src/application/server.ts` e é
+  responsável por receber as mensagens da fila SQS e excluí-las da fila. Veja o
+  exemplo abaixo:
+
+```typescript
+import { IQueueService } from '@/application/service/queue.service';
+
+import { Inject, QueueConsumer } from '@/infra/decorator';
+import { IQueueConsumer } from '@/infra/decorator/queue-consumer/index.dto';
+
+export class QueueConsumerService {
+  @Inject('SQS_SERVICE')
+  public readonly sqsService: IQueueService.Implements;
+
+  private async receiveMessages({
+    queue,
+  }: Pick<IQueueConsumer.InternalProps, 'queue'>): Promise<
+    IQueueService.Message[]
+  > {
+    return this.sqsService.receiveMessages({
+      queue,
+      awaitTimeSeconds: 2,
+      take: 10,
+      visibilityTimeoutSeconds: 2,
+      messageAttributesNames: ['name', 'age', 'isActived'],
+    });
+  }
+  private async consumerMessages({ messages }: IQueueConsumer.InternalProps) {
+    console.log(messages);
+    new Promise((resolve) => {
+      setTimeout(() => {
+        resolve('done');
+      }, 2000);
+    });
+  }
+  private async deleteMessages({
+    queue,
+    messages,
+  }: IQueueConsumer.InternalProps): Promise<void> {
+    await this.sqsService.deleteMessages({
+      queue,
+      messages,
+    });
+  }
+
+  @QueueConsumer({ key: 'local-queue', queue: 'local-queue', polling: 1000 })
+  async createQueue(): Promise<IQueueConsumer.Pipeline> {
+    return {
+      receiveMessages: this.receiveMessages.bind(this),
+      consumerMessages: this.consumerMessages.bind(this),
+      deleteMessages: this.deleteMessages.bind(this),
+    };
+  }
+}
+```
+
+- Perceba que o poling é feito a cada 1000 milissegundos, ou seja, a cada 1
+  segundo ele verifica se tem mensagens na fila e as exclui. Caso ocorra algum
+  erro ele tenta novamente exponenciando o tempo de espera até chegar a 5
+  minutos de espera e depois cancela o processo. Neste caso de uso você deve
+  tratar os dados de acordo com a sua necessidade através do método
+  `consumerMessages` que é responsável por tratar as mensagens recebidas.
+
 # Links utilizados para estudo
 
 | Link                                                                                             | Descrição                                                                                  |
