@@ -236,6 +236,74 @@ export class SQSController extends AbstractController {
 }
 ```
 
+Observe que a rota criada `/sqs/queue` recebe um dto `QueueDto` que é
+responsável por validar os dados recebidos na requisição. Veja o exemplo abaixo:
+
+```typescript
+import { z } from 'zod';
+
+export const QueueDto = z.object({
+  queue: z
+    .string({
+      required_error: 'Nome da fila é obrigatório',
+    })
+    .min(3, {
+      message: 'Nome da fila deve ter no mínimo 3 caracteres',
+    }),
+});
+
+export type IQueueDto = z.infer<typeof QueueDto>;
+```
+
+- Este `DTO` recebe um padrão de dados com bastante informação para que o `zod`
+  valide e transforme os dados de acordo com as necessidades do `Controller`.
+  Veja o exemplo abaixo:
+
+```json
+{
+  queue: 'local-queue',
+  ...params,
+  ...query,
+  ...body,
+  headers: {
+    ...headers
+  },
+  userAgent: {
+    family: 'Other',
+    version: '0.0.0',
+    ip: '127.0.0.1',
+    ipRaw: '',
+    ips: undefined,
+    ipRemote: '127.0.0.1',
+    browser: 'Other 0.0.0',
+    os: 'Other 0.0.0',
+    devide: 'Other 0.0.0'
+  }
+}
+```
+
+# Tratamento de erros no decorator de rota:
+
+- Por padrão é tratado e retornado um response com bastante detalhe sobre o erro
+  que ocorreu. Veja o exemplo abaixo:
+
+```json
+{
+  "code": 400,
+  "status": "BadRequestException",
+  "message": "Queue already exists",
+  "method": "POST",
+  "url": "/sqs/queue",
+  "stack": {
+    "controller": "SQSController",
+    "className": "SQSService",
+    "pathFile": "infra/service/aws/sqs.service.ts",
+    "startLine": 100,
+    "endLine": 13
+  }
+}
+```
+
 # Como que funciona a injeção de dependências
 
 - A injeção de dependências é feita através do decorator que recebe um serviço e

@@ -6,16 +6,14 @@ export const userAgentParse = (request: FastifyRequest) => {
   const userAgent = request.headers['user-agent'];
   const agent = useragent.parse(userAgent);
   return {
-    useAgent: {
-      family: agent.family,
-      version: agent.toVersion(),
-      ip: request.ip,
-      ipRaw: raw.ip || '',
-      ips: request.ips,
-      ipRemote: raw.connection.remoteAddress,
-      browser: agent.toAgent(),
-      os: agent.os.toString(),
-      devide: agent.device.toString(),
-    },
+    family: agent.family,
+    version: agent.toVersion(),
+    ip: request.ip,
+    ipRaw: raw.ip || '',
+    ips: request.ips,
+    ipRemote: raw.connection.remoteAddress,
+    browser: agent.toAgent(),
+    os: agent.os.toString(),
+    devide: agent.device.toString(),
   };
 };
