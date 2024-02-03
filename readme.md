@@ -1,175 +1,177 @@
-# NODEJS + LOCALSTACK + SNS + SQS
-Simples POCK para demostrar como utilizar o Localstack para simular o SNS e SQS.
+# Node.js + LocalStack + SNS + SQS + Fastify.js + CleanCode + Decorator + Dependency Inversion
 
-# Documentação
-[Link oficial](https://github.com/localstack/localstack)
+**Serviços de Gerenciamento e consumo de Filas e Tópicos SNS em Ambiente
+Docker/LocalStack com Fastify, Clean Code e Injeção de Dependências utilizando
+decorators**
+
+Esta é uma POCK contendo padrões de serviços e decorators para gerenciamento e
+consumo de filas em SQS/SNS. Para rodar o projeto em desenvolvimento utilizei o
+Docker e LocalStack. Para gerenciar rotas utilizei Fastify.js. Adotamos práticas
+de Clean Code, decorators e injeção de dependências para garantir um código
+claro, modular e facilmente mantido.
+
+**Principais Características:**
+
+1. **Docker/LocalStack:**
+
+   - Utilizamos contêineres Docker para facilitar a implantação e garantir a
+     consistência do ambiente de desenvolvimento e produção. O LocalStack é
+     empregado para simular serviços da AWS localmente, permitindo testes e
+     desenvolvimento sem a necessidade de recursos da nuvem.
+
+2. **Fastify:**
+
+   - O aplicativo é construído sobre o framework Fastify, conhecido por sua
+     eficiência e desempenho em aplicações web e API. A escolha do Fastify
+     contribui para uma execução rápida e eficiente, ideal para serviços de
+     mensageria.
+
+3. **Clean Code e Injeção de Dependências:**
+
+   - Adotamos práticas de Clean Code para garantir uma base de código legível,
+     modular e fácil de entender. A injeção de dependências orquestrar a
+     reutilização dos controlers/services e inicializar as rotas com um padrão
+     mais amigável de rodas.
+
+4. **Gerenciamento de Filas e Tópicos SNS:**
+
+   - Nosso aplicativo permite a criação, configuração e gerenciamento eficiente
+     de filas e tópicos SNS. Os recursos oferecidos pelo SNS, como pub/sub
+     (publicação/assinatura), são plenamente suportados para garantir uma
+     comunicação eficaz entre os diversos componentes do sistema.
+
+5. **Pooling de Mensagens:**
+
+   - Implementamos um mecanismo de pooling de mensagens para enviar e receber
+     mensagens de filas e tópicos de maneira eficiente. Embora o exemplo inicial
+     integre a parte de pooling no mesmo projeto, destacamos que é facilmente
+     escalável e separável em um ambiente distinto, conforme a necessidade do
+     cliente.
+
+6. **Visualizar médotos em funcionamento:**
+
+- Utilizamos o plugin REST Client para visualizar os métodos em funcionamento.
+  Para que você possa testar os métodos, basta instalar-lo
+  [através do link](https://open.vscode.dev/Huachao/vscode-restclient) após
+  instalado basta abrir o arquivo da arvore de pastas representadas abaixo e
+  clicar em `Send Request` para testar os métodos.
+
+```dir
+rest-client-http
+ - sns-subscription.http
+ - sns-topic.http
+ - sqs-queue.http
+```
+
+7. **Pasta src/application:**
+   - Contém todo e qualquer código que seja específico da aplicação, como
+     controllers, decorators, exceptions, middlewares, services ou util.
+     Qualquer serviço contido nesta pasta não deve depender de nenhum serviço de
+     infraestrutura ou de terceiros.
+
+```dir
+- src
+  - application
+    - controller
+    - decorator
+    - exception
+    - middleware
+    - service
+    - util
+```
+
+7. **Pasta src/infra:**
+
+- Contém todo e qualquer código que seja específico da infraestrutura, como
+  adapter, controller, decorator, service, repository, dto, etc. Todo e qualquer
+  padrão utilizado nesta pasta geralmente é contaminado por serviços de
+  terceiros ou implementa interface da pasta application.
+
+```dir
+- src
+  - infra
+    - controller
+    - decorator
+    - service
+    - util
+```
+
+# Iniciando o projeto
+
+### Clone o projeto e acessa a pasta
+
+```bash
+git clone git@github.com:joisiney/sqs-sns-localstak-decorator-clean-code-nodejs.git
+```
 
 # Iniciar Localstack com Docker Compose
-O arquivo docker-compose.yml contém a configuração necessária para iniciar o Localstack com os serviços SNS e SQS.
-Para inicializar o Localstack, execute o comando abaixo:
+
+O arquivo `docker-compose.yml`` contém a configuração necessária para iniciar o
+Localstack com os serviços SNS e SQS. Para inicializar o Localstack, execute o
+comando abaixo:
+
 ```bash
 docker-compose up -d
 ```
 
 # Usando Localstack
-Seguindo nosso tutorial, agora com o Localstack em execução, vamos realizar o primeiro teste, criando um Bucket no S3 usando o AWS CLI. Se você ainda não tem ele instalado, pode baixar aqui o [AWS CLI](https://aws.amazon.com/pt/cli/).
+
+Seguindo nosso tutorial, agora com o Localstack em execução, vamos realizar o
+primeiro teste, criando um Bucket no S3 usando o AWS CLI. Se você ainda não tem
+ele instalado, pode baixar aqui o [AWS CLI](https://aws.amazon.com/pt/cli/).
 
 Vamos lá, digite no seu terminal o seguinte comando:
+
 ```bash
 # Criar um bucket
 aws --endpoint-url=http://localhost:4566 s3 mb s3://test
 
 # Listar todos os buckets
 aws --endpoint-url=http://localhost:4566 s3 ls
-``````
+```
+
 O resultado será um bucket criado e depois a listagem de buckets.
 
-# Configuração do nodejs
--- Não se esqueça de adicionar `"type": "module" em seu `package.json` para utilizar o import de pacodes em vez de required.
+# FIX/Localstack
 
-# Usando Localstack
-- Atualize o localstack para a versão mais recente, a vesão antiga não funciona.
-  - `docker pull localstack/localstack:latest`
-- Configure as credenciais de acesso do localstack
-  - `aws configure --profile localstack`
-    - Preencha as informações solicitadas:
-    - AWS Access Key ID: S3RVER
-    - AWS Secret Access Key: S3RVER
-    - Default region name: us-east-1
-    - Default output format: json
-- O arquivo sns-publisher.js publica uma mensagem no SNS.
-- O arquivo sqs-consumer.js consome a mensagem do SQS.
+- No meu caso tive problemas para utiliza-lo em meu MAC M1, dai tive que
+  atualizar o localstack para a versão mais recente, a vesão antiga não
+  funciona.
 
-# Referencias de estudos
-- [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)
-- [AWS GIT](https://github.com/awsdocs/aws-doc-sdk-examples/tree/main/javascriptv3/example_code)
-- [danieldcs](https://danieldcs.com/simulando-aws-local-com-localstack-e-node-js)
-- [pulse](https://www.linkedin.com/pulse/desenvolvimento-de-aplica%C3%A7%C3%B5es-serverless-locais-uma-vis%C3%A3o-tiago-silva/?originalSubdomain=pt)
-- (Vídeo aula SQS)[https://www.youtube.com/watch?v=b0_NFzdPkDo]
-(Secret Manager)[https://www.google.com/search?sca_esv=600777061&sxsrf=ACQVn08PIjRyOUeTzGZsmjMp2uyBrDsZKA:1706028741285&q=localstack+secretsmanager+Nodejs&tbm=vid&source=lnms&prmd=svinbmtz&sa=X&ved=2ahUKEwiTgOeo_PODAxW8ppUCHeADBWcQ0pQJegQIDxAB&biw=1512&bih=823&dpr=2#fpstate=ive&vld=cid:3191bdd3,vid:NiKSdX_eitU,st:0]
-
-
-- Criando tópico SNS
 ```bash
-aws sns create-topic \
---endpoint-url http://localhost:4566 \
---region us-east-1 \
---name local-topic
-```
-- Listando todos os tópicos SNS
-```bash
-aws sns list-topics \
---endpoint-url http://localhost:4566 \
---region us-east-1
-```
-- Deletando tópico SNS
-```bash
-aws sns delete-topic \
---endpoint-url http://localhost:4566 \
---topic-arn arn:aws:sns:us-east-1:000000000000:local-topic
+docker pull localstack/localstack:latest
 ```
 
-- Inscrevendo um tópico SNS em uma fila SQS (Tem que criar a fila antes de inscrever)
-```bash
-aws sns subscribe \
---endpoint-url http://localhost:4566 \
---region us-east-1 \
---topic-arn arn:aws:sns:us-east-1:000000000000:local-topic \
---protocol sqs \
---notification-endpoint arn:aws:sqs:us-east-1:000000000000:local-queue
-```
-
-```bash
-aws sns list-subscriptions-by-topic \
---endpoint-url http://localhost:4566 \
---region us-east-1 \
---topic-arn arn:aws:sns:us-east-1:000000000000:local-topic
-```
-
-- Criando uma fila SQS
-```bash
-aws sqs create-queue \
---endpoint-url http://localhost:4566 \
---region us-east-1 \
---queue-name local-queue
-```
-
-- Recebendo mensagem de uma fila SQS
-```bash
-aws sqs receive-message \
---endpoint-url http://localhost:4566 \
---region us-east-1 \
---queue-url http://localhost:4566/000000000000/local-queue
-```
-
-- Deletando mensagem de uma fila SQS através do receipt-handle
-```bash
-aws sqs delete-message \
---endpoint-url http://localhost:4566 \
---region us-east-1 \
---queue-url http://localhost:4566/000000000000/local-queue \
---receipt-handle Y2I3NzE2MzMtMmFmNi00ZTYyLWJkMzUtMGFjNDEwMDdhZmNmIGFybjphd3M6c3FzOnVzLWVhc3QtMTowMDAwMDAwMDAwMDA6bG9jYWwtcXVldWUgZjExYmUyMDItZjkyZi00NGZlLWIwOGItYTU0M2ExNmE2MTgwIDE3MDU5NzA5MDAuODMxNjY1
-```
-
--- Deletando todas as mensagens de uma fila SQS
-```bash
-aws sqs purge-queue \
---endpoint-url http://localhost:4566 \
---region us-east-1 \
---queue-url http://localhost:4566/000000000000/local-queue
-```
-
-- Listando todas as filas SQS
-```bash
-aws sqs list-queues \
---endpoint-url http://localhost:4566 \
---region us-east-1
-```
-
-- Deletando uma fila SQS
-```bash
-aws sqs delete-queue \
---endpoint-url http://localhost:4566 \
---queue-url http://localhost:4566/000000000000/local-queue
-``````
-
-- Extraindo a URL da fila SQS
-```bash
-aws sqs list-queues \
---endpoint-url http://localhost:4566 \
---region us-east-1 \
---queue-name local-queue \
---query 'QueueUrls' \
---output text
-``````
-
-
-```bash
-aws sqs get-queue-attributes \
---endpoint-url http://localhost:4566 \
---region us-east-1 \
---queue-url http://localhost:4566/000000000000/local-queue \
---attribute-names QueueArn
-``````
-
-
-# Setup express
-```bash
-yarn add express
-yarn add typescript @types/express tsx -D
-npx tsc --init
-```
+- Preencha as informações solicitadas:
+- AWS Access Key ID: S3RVER
+- AWS Secret Access Key: S3RVER
+- Default region name: us-east-1
+- Default output format: json
 
 # Salvando credenciais do localstack
+
 ```bash
 aws configure --profile localstack
 ```
 
 # Local onde as credenciais são salvas
+
 ```bash
 ls ~/.aws
 ```
 
+# Links utilizados para estudo
 
-
-https://www.npmjs.com/package/sqs-consumer
+| Link                                                                                             | Descrição                                                                                  |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| [Localstack](https://github.com/localstack/localstack)                                           | Simula serviços da AWS localmente                                                          |
+| [Fastify](https://www.fastify.io/)                                                               | Framework web para Node.js                                                                 |
+| [Clean Code](https://www.amazon.com.br/Clean-Code-Handbook-Software-Craftsmanship/dp/0132350882) | Livro Clean Code                                                                           |
+| [Decorator](https://www.typescriptlang.org/docs/handbook/decorators.html)                        | Decorators em TypeScript                                                                   |
+| [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html)                | AWS CLI                                                                                    |
+| [AWS GIT](https://github.com/awsdocs/aws-doc-sdk-examples/tree/main/javascriptv3/example_code)   | Exemplos de código AWS                                                                     |
+| [danieldcs](https://danieldcs.com/simulando-aws-local-com-localstack-e-node-js)                  | Simulando AWS local com Localstack                                                         |
+| [pulse](https://encurtador.com.br/qtLUZ)                                                         | Desenvolvimento de aplicações serverless locais: uma visão                                 |
+| [Vídeo aula SQS](https://www.youtube.com/watch?v=b0_NFzdPkDo)                                    | Vídeo aula SQS                                                                             |
+| [Secret Manager](https://www.youtube.com/watch?v=NiKSdX_eitU&t=1609s)                            | Localstack Secrets Manager Nodejs                                                          |
+| [Comandos AWS Cli](./docs/commands-aws-cli.md)                                                   | Alguns comandos que utilizei para testar a aplicação durante o processo de desenvolvimento |

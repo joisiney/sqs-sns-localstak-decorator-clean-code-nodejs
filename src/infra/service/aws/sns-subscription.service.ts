@@ -1,4 +1,4 @@
-import { BadRequestException } from '@/application/exceptions';
+import { BadRequestException } from '@/application/exception';
 import { IQueueTopicSubscriptionService } from '@/application/service/queue-topic-subscription.service';
 import { IQueueTopic } from '@/application/service/queue-topic.service';
 import { IQueueService } from '@/application/service/queue.service';

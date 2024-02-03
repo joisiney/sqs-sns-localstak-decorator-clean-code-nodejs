@@ -1,4 +1,4 @@
-import { ZodException } from '@/application/exceptions';
+import { ZodException } from '@/application/exception';
 import { z } from 'zod';
 
 export const zodParse = (

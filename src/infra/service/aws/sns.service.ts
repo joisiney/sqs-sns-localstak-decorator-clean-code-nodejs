@@ -1,4 +1,4 @@
-import { BadRequestException } from '@/application/exceptions';
+import { BadRequestException } from '@/application/exception';
 import { IQueueTopic } from '@/application/service/queue-topic.service';
 import {
   CreateTopicCommand,
